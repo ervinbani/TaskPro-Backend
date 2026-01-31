@@ -52,7 +52,7 @@ npm install
 Create a `.env` file in the root directory:
 
 ```env
-PORT=5000
+PORT=3000
 MONGO_URI=mongodb://localhost:27017/taskpro
 JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
 ```
@@ -67,7 +67,7 @@ Make sure MongoDB is running locally or use MongoDB Atlas connection string.
 node server.js
 ```
 
-Server will run on `http://localhost:5000`
+Server will run on `http://localhost:3000`
 
 ---
 
@@ -83,7 +83,7 @@ Use **Postman**, **Thunder Client**, or **curl** to test the endpoints.
 
 Create a new user account.
 
-**Endpoint:** `POST http://localhost:5000/api/auth/register`
+**Endpoint:** `POST http://localhost:3000/api/auth/register`
 
 **Headers:**
 
@@ -120,7 +120,7 @@ Content-Type: application/json
 
 Login with existing credentials.
 
-**Endpoint:** `POST http://localhost:5000/api/auth/login`
+**Endpoint:** `POST http://localhost:3000/api/auth/login`
 
 **Headers:**
 
@@ -158,7 +158,7 @@ Content-Type: application/json
 
 Create a new project (user becomes owner).
 
-**Endpoint:** `POST http://localhost:5000/api/projects`
+**Endpoint:** `POST http://localhost:3000/api/projects`
 
 **Headers:**
 
@@ -198,7 +198,7 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Get all projects where user is owner or collaborator.
 
-**Endpoint:** `GET http://localhost:5000/api/projects`
+**Endpoint:** `GET http://localhost:3000/api/projects`
 
 **Headers:**
 
@@ -232,9 +232,9 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Get details of a specific project.
 
-**Endpoint:** `GET http://localhost:5000/api/projects/:id`
+**Endpoint:** `GET http://localhost:3000/api/projects/:id`
 
-**Example:** `GET http://localhost:5000/api/projects/65a1b2c3d4e5f6g7h8i9j0k2`
+**Example:** `GET http://localhost:3000/api/projects/65a1b2c3d4e5f6g7h8i9j0k2`
 
 **Headers:**
 
@@ -266,9 +266,9 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Update project details (only owner can update).
 
-**Endpoint:** `PUT http://localhost:5000/api/projects/:id`
+**Endpoint:** `PUT http://localhost:3000/api/projects/:id`
 
-**Example:** `PUT http://localhost:5000/api/projects/65a1b2c3d4e5f6g7h8i9j0k2`
+**Example:** `PUT http://localhost:3000/api/projects/65a1b2c3d4e5f6g7h8i9j0k2`
 
 **Headers:**
 
@@ -306,9 +306,9 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Delete a project (only owner can delete).
 
-**Endpoint:** `DELETE http://localhost:5000/api/projects/:id`
+**Endpoint:** `DELETE http://localhost:3000/api/projects/:id`
 
-**Example:** `DELETE http://localhost:5000/api/projects/65a1b2c3d4e5f6g7h8i9j0k2`
+**Example:** `DELETE http://localhost:3000/api/projects/65a1b2c3d4e5f6g7h8i9j0k2`
 
 **Headers:**
 
@@ -334,9 +334,9 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Create a new task in a project.
 
-**Endpoint:** `POST http://localhost:5000/api/tasks/projects/:projectId/tasks`
+**Endpoint:** `POST http://localhost:3000/api/tasks/projects/:projectId/tasks`
 
-**Example:** `POST http://localhost:5000/api/tasks/projects/65a1b2c3d4e5f6g7h8i9j0k2/tasks`
+**Example:** `POST http://localhost:3000/api/tasks/projects/65a1b2c3d4e5f6g7h8i9j0k2/tasks`
 
 **Headers:**
 
@@ -377,9 +377,9 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Get all tasks belonging to a specific project.
 
-**Endpoint:** `GET http://localhost:5000/api/tasks/projects/:projectId/tasks`
+**Endpoint:** `GET http://localhost:3000/api/tasks/projects/:projectId/tasks`
 
-**Example:** `GET http://localhost:5000/api/tasks/projects/65a1b2c3d4e5f6g7h8i9j0k2/tasks`
+**Example:** `GET http://localhost:3000/api/tasks/projects/65a1b2c3d4e5f6g7h8i9j0k2/tasks`
 
 **Headers:**
 
@@ -418,9 +418,9 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Get details of a specific task.
 
-**Endpoint:** `GET http://localhost:5000/api/tasks/:id`
+**Endpoint:** `GET http://localhost:3000/api/tasks/:id`
 
-**Example:** `GET http://localhost:5000/api/tasks/65a1b2c3d4e5f6g7h8i9j0k3`
+**Example:** `GET http://localhost:3000/api/tasks/65a1b2c3d4e5f6g7h8i9j0k3`
 
 **Headers:**
 
@@ -454,9 +454,9 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Update task details (status, description, etc.).
 
-**Endpoint:** `PUT http://localhost:5000/api/tasks/:id`
+**Endpoint:** `PUT http://localhost:3000/api/tasks/:id`
 
-**Example:** `PUT http://localhost:5000/api/tasks/65a1b2c3d4e5f6g7h8i9j0k3`
+**Example:** `PUT http://localhost:3000/api/tasks/65a1b2c3d4e5f6g7h8i9j0k3`
 
 **Headers:**
 
@@ -494,9 +494,9 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Delete a task from a project.
 
-**Endpoint:** `DELETE http://localhost:5000/api/tasks/:id`
+**Endpoint:** `DELETE http://localhost:3000/api/tasks/:id`
 
-**Example:** `DELETE http://localhost:5000/api/tasks/65a1b2c3d4e5f6g7h8i9j0k3`
+**Example:** `DELETE http://localhost:3000/api/tasks/65a1b2c3d4e5f6g7h8i9j0k3`
 
 **Headers:**
 
