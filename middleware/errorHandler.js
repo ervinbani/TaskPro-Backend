@@ -6,9 +6,9 @@ const errorHandler = (err, req, res, next) => {
 
   // Errore Mongoose: risorsa non trovata (CastError)
   // Es: ID non valido nel database
-  if (err.name === 'CastError' && err.kind === 'ObjectId') {
+  if (err.name === "CastError" && err.kind === "ObjectId") {
     statusCode = 404;
-    message = 'Resource not found';
+    message = "Resource not found";
   }
 
   // Errore Mongoose: campo duplicato (es. email già esistente)
@@ -19,19 +19,19 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Errore Mongoose: validazione fallita
-  if (err.name === 'ValidationError') {
+  if (err.name === "ValidationError") {
     statusCode = 400;
     // Estrae tutti i messaggi di errore di validazione
     message = Object.values(err.errors)
-      .map(val => val.message)
-      .join(', ');
+      .map((val) => val.message)
+      .join(", ");
   }
 
   // Invia risposta JSON con l'errore
   res.status(statusCode).json({
     message,
     // Mostra lo stack trace solo in development
-    stack: process.env.NODE_ENV === 'production' ? null : err.stack
+    stack: process.env.NODE_ENV === "production" ? null : err.stack,
   });
 };
 
