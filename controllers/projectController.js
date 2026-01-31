@@ -1,4 +1,4 @@
-const Project = require('../models/Project');
+const Project = require("../models/Project");
 
 // @desc    Create a new project
 // @route   POST /api/projects
@@ -9,7 +9,9 @@ const createProject = async (req, res) => {
 
     // Validazione: controlla che i campi obbligatori siano presenti
     if (!name || !description) {
-      return res.status(400).json({ message: 'Please provide name and description' });
+      return res
+        .status(400)
+        .json({ message: "Please provide name and description" });
     }
 
     // Crea il progetto con l'utente loggato come owner
@@ -17,7 +19,7 @@ const createProject = async (req, res) => {
     const project = await Project.create({
       name,
       description,
-      owner: req.user._id // L'utente loggato diventa proprietario
+      owner: req.user._id, // L'utente loggato diventa proprietario
     });
 
     res.status(201).json(project);
@@ -33,13 +35,10 @@ const getProjects = async (req, res) => {
   try {
     // Trova tutti i progetti dove l'utente è owner O collaborator
     const projects = await Project.find({
-      $or: [
-        { owner: req.user._id },
-        { collaborators: req.user._id }
-      ]
+      $or: [{ owner: req.user._id }, { collaborators: req.user._id }],
     })
-      .populate('owner', 'username email') // Popola i dati dell'owner
-      .populate('collaborators', 'username email') // Popola i dati dei collaboratori
+      .populate("owner", "username email") // Popola i dati dell'owner
+      .populate("collaborators", "username email") // Popola i dati dei collaboratori
       .sort({ createdAt: -1 }); // Ordina per data creazione (più recenti prima)
 
     res.json(projects);
@@ -54,21 +53,23 @@ const getProjects = async (req, res) => {
 const getProjectById = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
-      .populate('owner', 'username email')
-      .populate('collaborators', 'username email');
+      .populate("owner", "username email")
+      .populate("collaborators", "username email");
 
     if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+      return res.status(404).json({ message: "Project not found" });
     }
 
     // Authorization: controlla che l'utente sia owner o collaborator
     const isOwner = project.owner._id.toString() === req.user._id.toString();
     const isCollaborator = project.collaborators.some(
-      collab => collab._id.toString() === req.user._id.toString()
+      (collab) => collab._id.toString() === req.user._id.toString(),
     );
 
     if (!isOwner && !isCollaborator) {
-      return res.status(403).json({ message: 'Not authorized to access this project' });
+      return res
+        .status(403)
+        .json({ message: "Not authorized to access this project" });
     }
 
     res.json(project);
@@ -85,17 +86,19 @@ const updateProject = async (req, res) => {
     const project = await Project.findById(req.params.id);
 
     if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+      return res.status(404).json({ message: "Project not found" });
     }
 
     // Authorization: SOLO l'owner può aggiornare il progetto
     if (project.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to update this project' });
+      return res
+        .status(403)
+        .json({ message: "Not authorized to update this project" });
     }
 
     // Aggiorna i campi
     const { name, description, collaborators } = req.body;
-    
+
     if (name) project.name = name;
     if (description) project.description = description;
     if (collaborators) project.collaborators = collaborators;
@@ -116,17 +119,19 @@ const deleteProject = async (req, res) => {
     const project = await Project.findById(req.params.id);
 
     if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+      return res.status(404).json({ message: "Project not found" });
     }
 
     // Authorization: SOLO l'owner può eliminare il progetto
     if (project.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to delete this project' });
+      return res
+        .status(403)
+        .json({ message: "Not authorized to delete this project" });
     }
 
     await project.deleteOne();
 
-    res.json({ message: 'Project removed successfully' });
+    res.json({ message: "Project removed successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -137,5 +142,5 @@ module.exports = {
   getProjects,
   getProjectById,
   updateProject,
-  deleteProject
+  deleteProject,
 };

@@ -1,10 +1,10 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
 // Funzione helper per generare JWT token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '30d' // Token valido per 30 giorni
+    expiresIn: "30d", // Token valido per 30 giorni
   });
 };
 
@@ -17,13 +17,13 @@ const register = async (req, res) => {
 
     // Validazione: controlla che tutti i campi siano presenti
     if (!username || !email || !password) {
-      return res.status(400).json({ message: 'Please provide all fields' });
+      return res.status(400).json({ message: "Please provide all fields" });
     }
 
     // Controlla se l'utente esiste già (per email)
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: "User already exists" });
     }
 
     // Crea nuovo utente
@@ -31,7 +31,7 @@ const register = async (req, res) => {
     const user = await User.create({
       username,
       email,
-      password
+      password,
     });
 
     // Se l'utente è stato creato con successo
@@ -40,10 +40,10 @@ const register = async (req, res) => {
         _id: user._id,
         username: user.username,
         email: user.email,
-        token: generateToken(user._id) // Genera e invia il JWT token
+        token: generateToken(user._id), // Genera e invia il JWT token
       });
     } else {
-      res.status(400).json({ message: 'Invalid user data' });
+      res.status(400).json({ message: "Invalid user data" });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -59,7 +59,9 @@ const login = async (req, res) => {
 
     // Validazione: controlla che email e password siano presenti
     if (!email || !password) {
-      return res.status(400).json({ message: 'Please provide email and password' });
+      return res
+        .status(400)
+        .json({ message: "Please provide email and password" });
     }
 
     // Trova l'utente per email
@@ -72,10 +74,10 @@ const login = async (req, res) => {
         _id: user._id,
         username: user.username,
         email: user.email,
-        token: generateToken(user._id) // Genera e invia il JWT token
+        token: generateToken(user._id), // Genera e invia il JWT token
       });
     } else {
-      res.status(401).json({ message: 'Invalid email or password' });
+      res.status(401).json({ message: "Invalid email or password" });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -84,5 +86,5 @@ const login = async (req, res) => {
 
 module.exports = {
   register,
-  login
+  login,
 };
