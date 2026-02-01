@@ -19,7 +19,7 @@ TaskPro-Backend/
 ├── config/
 │   └── db.js                 # MongoDB connection
 ├── controllers/
-│   ├── authController.js     # Authentication logic (register, login)
+│   ├── userController.js     # User logic (register, login)
 │   ├── projectController.js  # Project CRUD operations
 │   └── taskController.js     # Task CRUD operations
 ├── middleware/
@@ -30,7 +30,7 @@ TaskPro-Backend/
 │   ├── Project.js           # Project schema (name, description, owner, collaborators)
 │   └── Task.js              # Task schema (title, description, status, project)
 ├── routes/
-│   ├── authRoutes.js        # Auth routes (register, login)
+│   ├── userRoutes.js        # User routes (register, login)
 │   ├── projectRoutes.js     # Project routes
 │   └── taskRoutes.js        # Task routes
 ├── .env                     # Environment variables
@@ -63,11 +63,25 @@ Make sure MongoDB is running locally or use MongoDB Atlas connection string.
 
 ### 4. Start Server
 
+#### Development Mode (with auto-reload)
+
 ```bash
-node server.js
+npm run dev
+```
+
+#### Production Mode
+
+```bash
+npm start
 ```
 
 Server will run on `http://localhost:3000`
+
+**Available Scripts:**
+
+- `npm start` - Starts the server using Node.js
+- `npm run dev` - Starts the server using nodemon (auto-reloads on file changes)
+- `npm test` - Run tests (not yet configured)
 
 ---
 
@@ -77,13 +91,13 @@ Use **Postman**, **Thunder Client**, or **curl** to test the endpoints.
 
 ---
 
-## 📋 Authentication Endpoints
+## 📋 User Endpoints
 
 ### 1. Register User
 
 Create a new user account.
 
-**Endpoint:** `POST http://localhost:3000/api/auth/register`
+**Endpoint:** `POST http://localhost:3000/api/user/register` -- (test ok)
 
 **Headers:**
 
@@ -120,7 +134,7 @@ Content-Type: application/json
 
 Login with existing credentials.
 
-**Endpoint:** `POST http://localhost:3000/api/auth/login`
+**Endpoint:** `POST http://localhost:3000/api/user/login` --testok
 
 **Headers:**
 
@@ -158,7 +172,7 @@ Content-Type: application/json
 
 Create a new project (user becomes owner).
 
-**Endpoint:** `POST http://localhost:3000/api/projects`
+**Endpoint:** `POST http://localhost:3000/api/projects` --test ok
 
 **Headers:**
 
@@ -198,7 +212,7 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Get all projects where user is owner or collaborator.
 
-**Endpoint:** `GET http://localhost:3000/api/projects`
+**Endpoint:** `GET http://localhost:3000/api/projects` --test ok
 
 **Headers:**
 
@@ -232,7 +246,7 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Get details of a specific project.
 
-**Endpoint:** `GET http://localhost:3000/api/projects/:id`
+**Endpoint:** `GET http://localhost:3000/api/projects/:id` -- test ok
 
 **Example:** `GET http://localhost:3000/api/projects/65a1b2c3d4e5f6g7h8i9j0k2`
 
@@ -266,7 +280,7 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Update project details (only owner can update).
 
-**Endpoint:** `PUT http://localhost:3000/api/projects/:id`
+**Endpoint:** `PUT http://localhost:3000/api/projects/:id` --test ok
 
 **Example:** `PUT http://localhost:3000/api/projects/65a1b2c3d4e5f6g7h8i9j0k2`
 
@@ -306,7 +320,7 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Delete a project (only owner can delete).
 
-**Endpoint:** `DELETE http://localhost:3000/api/projects/:id`
+**Endpoint:** `DELETE http://localhost:3000/api/projects/:id` --- test ok
 
 **Example:** `DELETE http://localhost:3000/api/projects/65a1b2c3d4e5f6g7h8i9j0k2`
 
@@ -334,7 +348,7 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Create a new task in a project.
 
-**Endpoint:** `POST http://localhost:3000/api/tasks/projects/:projectId/tasks`
+**Endpoint:** `POST http://localhost:3000/api/tasks/projects/:projectId/tasks` --testok
 
 **Example:** `POST http://localhost:3000/api/tasks/projects/65a1b2c3d4e5f6g7h8i9j0k2/tasks`
 
@@ -418,7 +432,7 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Get details of a specific task.
 
-**Endpoint:** `GET http://localhost:3000/api/tasks/:id`
+**Endpoint:** `GET http://localhost:3000/api/tasks/:id` ---test ok
 
 **Example:** `GET http://localhost:3000/api/tasks/65a1b2c3d4e5f6g7h8i9j0k3`
 
@@ -454,7 +468,7 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 Update task details (status, description, etc.).
 
-**Endpoint:** `PUT http://localhost:3000/api/tasks/:id`
+**Endpoint:** `PUT http://localhost:3000/api/tasks/:id` ---test ok
 
 **Example:** `PUT http://localhost:3000/api/tasks/65a1b2c3d4e5f6g7h8i9j0k3`
 
@@ -549,7 +563,7 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 ### Step 1: Register User
 
 ```
-POST /api/auth/register
+POST /api/user/register
 Body: { username, email, password }
 → Save the token
 ```
@@ -621,8 +635,8 @@ Headers: Authorization: Bearer TOKEN
 
 | Method | Endpoint                               | Auth    | Description       |
 | ------ | -------------------------------------- | ------- | ----------------- |
-| POST   | `/api/auth/register`                   | Public  | Register new user |
-| POST   | `/api/auth/login`                      | Public  | Login user        |
+| POST   | `/api/user/register`                   | Public  | Register new user |
+| POST   | `/api/user/login`                      | Public  | Login user        |
 | POST   | `/api/projects`                        | Private | Create project    |
 | GET    | `/api/projects`                        | Private | Get all projects  |
 | GET    | `/api/projects/:id`                    | Private | Get project by ID |

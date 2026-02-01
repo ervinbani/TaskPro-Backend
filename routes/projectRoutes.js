@@ -1,12 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const {
-  createProject,
-  getProjects,
-  getProjectById,
-  updateProject,
-  deleteProject,
-} = require("../controllers/projectController");
+const projectController = require("../controllers/projectController");
 const { protect } = require("../middleware/auth");
 
 // Applica il middleware protect a TUTTE le routes
@@ -16,26 +10,26 @@ router.use(protect);
 // @route   POST /api/projects
 // @desc    Create a new project
 // @access  Private
-router.post("/", createProject);
+router.post("/", projectController.createProject);
 
 // @route   GET /api/projects
 // @desc    Get all projects for logged-in user
 // @access  Private
-router.get("/", getProjects);
+router.get("/", projectController.getProjects);
 
 // @route   GET /api/projects/:id
 // @desc    Get single project by ID
 // @access  Private
-router.get("/:id", getProjectById);
+router.get("/:id", projectController.getProjectById);
 
 // @route   PUT /api/projects/:id
 // @desc    Update a project
 // @access  Private (only owner)
-router.put("/:id", updateProject);
+router.put("/:id", projectController.updateProject);
 
 // @route   DELETE /api/projects/:id
 // @desc    Delete a project
 // @access  Private (only owner)
-router.delete("/:id", deleteProject);
+router.delete("/:id", projectController.deleteProject);
 
 module.exports = router;

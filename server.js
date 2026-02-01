@@ -1,11 +1,12 @@
 // Import dependencies
 const express = require("express");
+const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const { errorHandler } = require("./middleware/errorHandler");
 
 // Import routes
-const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
 const projectRoutes = require("./routes/projectRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 
@@ -14,6 +15,9 @@ dotenv.config();
 
 // Initialize Express app
 const app = express();
+
+// Enable CORS
+app.use(cors());
 
 // Middleware to parse JSON
 app.use(express.json());
@@ -27,7 +31,7 @@ app.get("/", (req, res) => {
 });
 
 // Mount routes
-app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 

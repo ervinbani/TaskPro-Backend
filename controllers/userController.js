@@ -9,9 +9,9 @@ const generateToken = (id) => {
 };
 
 // @desc    Register a new user
-// @route   POST /api/auth/register
+// @route   POST /api/user/register
 // @access  Public
-const register = async (req, res) => {
+const register = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
 
@@ -46,14 +46,14 @@ const register = async (req, res) => {
       res.status(400).json({ message: "Invalid user data" });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
 // @desc    Login user
-// @route   POST /api/auth/login
+// @route   POST /api/user/login
 // @access  Public
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -80,7 +80,7 @@ const login = async (req, res) => {
       res.status(401).json({ message: "Invalid email or password" });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 

@@ -25,6 +25,12 @@ const projectSchema = new mongoose.Schema(
         ref: "User", // Array di riferimenti agli utenti collaboratori
       },
     ],
+    tags: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
   },
   {
     timestamps: true, // Aggiunge createdAt e updatedAt
