@@ -26,6 +26,12 @@ const taskSchema = new mongoose.Schema(
       ref: "Project", // Riferimento al progetto a cui appartiene
       required: true,
     },
+    tags: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
   },
   {
     timestamps: true, // Aggiunge createdAt e updatedAt
