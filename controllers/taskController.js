@@ -29,7 +29,7 @@ const checkProjectAccess = async (projectId, userId) => {
 // @access  Private
 const createTask = async (req, res) => {
   try {
-    const { title, description, status, tags } = req.body;
+    const { title, description, status, tags, comments } = req.body;
     const projectId = req.params.projectId;
 
     // Validazione: controlla che il titolo sia presente
@@ -52,6 +52,7 @@ const createTask = async (req, res) => {
       status: status || "To Do",
       project: projectId,
       tags: tags || [],
+      comments: comments || [],
     });
 
     res.status(201).json(task);
@@ -127,7 +128,7 @@ const updateTask = async (req, res) => {
     }
 
     // Aggiorna i campi
-    const { title, description, status, tags } = req.body;
+    const { title, description, status, tags, comments } = req.body;
 
     if (title) task.title = title;
     if (description !== undefined) task.description = description;
@@ -142,6 +143,7 @@ const updateTask = async (req, res) => {
       task.status = status;
     }
     if (tags !== undefined) task.tags = tags;
+    if (comments !== undefined) task.comments = comments;
 
     const updatedTask = await task.save();
 
