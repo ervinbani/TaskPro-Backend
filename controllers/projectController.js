@@ -1,4 +1,5 @@
 const Project = require("../models/Project");
+const User = require("../models/User");
 
 // @desc    Create a new project
 // @route   POST /api/projects
@@ -139,10 +140,104 @@ const deleteProject = async (req, res) => {
   }
 };
 
+// @desc    Add a collaborator to a project by email or username
+// @route   POST /api/projects/:id/collaborators
+// @access  Private (only owner)
+const addCollaborator = async (req, res) => {
+  try {
+    const { email, username } = req.body;
+
+    if (!email && !username) {
+      return res
+        .status(400)
+        .json({ message: "Please provide email or username" });
+    }
+
+    const project = await Project.findById(req.params.id);
+
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    // Authorization: SOLO l'owner può aggiungere collaboratori
+    if (project.owner.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to add collaborators" });
+    }
+
+    // Cerca l'utente per email o username
+    const user = await User.findOne(
+      email ? { email } : { username }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Controlla se è già un collaboratore
+    if (project.collaborators.includes(user._id)) {
+      return res.status(400).json({ message: "User is already a collaborator" });
+    }
+
+    // Controlla se l'utente è l'owner
+    if (project.owner.toString() === user._id.toString()) {
+      return res.status(400).json({ message: "Owner cannot be added as collaborator" });
+    }
+
+    // Aggiungi il collaboratore
+    project.collaborators.push(user._id);
+    await project.save();
+
+    // Popola i collaboratori prima di restituire
+    await project.populate("collaborators", "username email");
+
+    res.json(project);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Remove a collaborator from a project
+// @route   DELETE /api/projects/:id/collaborators/:userId
+// @access  Private (only owner)
+const removeCollaborator = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    // Authorization: SOLO l'owner può rimuovere collaboratori
+    if (project.owner.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to remove collaborators" });
+    }
+
+    // Rimuovi il collaboratore
+    project.collaborators = project.collaborators.filter(
+      (collab) => collab.toString() !== req.params.userId
+    );
+
+    await project.save();
+
+    // Popola i collaboratori prima di restituire
+    await project.populate("collaborators", "username email");
+
+    res.json(project);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createProject,
   getProjects,
   getProjectById,
   updateProject,
   deleteProject,
+  addCollaborator,
+  removeCollaborator,
 };
