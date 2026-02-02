@@ -34,8 +34,25 @@ const taskSchema = new mongoose.Schema(
     ],
     comments: [
       {
-        type: String,
-        trim: true,
+        description: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        owner: {
+          username: {
+            type: String,
+            required: true,
+          },
+          email: {
+            type: String,
+            required: true,
+          },
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
       },
     ],
   },
