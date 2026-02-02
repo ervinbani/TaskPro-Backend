@@ -32,6 +32,12 @@ const taskSchema = new mongoose.Schema(
         trim: true,
       },
     ],
+    comments: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
   },
   {
     timestamps: true, // Aggiunge createdAt e updatedAt
