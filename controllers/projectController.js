@@ -167,9 +167,7 @@ const addCollaborator = async (req, res) => {
     }
 
     // Cerca l'utente per email o username
-    const user = await User.findOne(
-      email ? { email } : { username }
-    );
+    const user = await User.findOne(email ? { email } : { username });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -177,12 +175,16 @@ const addCollaborator = async (req, res) => {
 
     // Controlla se è già un collaboratore
     if (project.collaborators.includes(user._id)) {
-      return res.status(400).json({ message: "User is already a collaborator" });
+      return res
+        .status(400)
+        .json({ message: "User is already a collaborator" });
     }
 
     // Controlla se l'utente è l'owner
     if (project.owner.toString() === user._id.toString()) {
-      return res.status(400).json({ message: "Owner cannot be added as collaborator" });
+      return res
+        .status(400)
+        .json({ message: "Owner cannot be added as collaborator" });
     }
 
     // Aggiungi il collaboratore
@@ -218,7 +220,7 @@ const removeCollaborator = async (req, res) => {
 
     // Rimuovi il collaboratore
     project.collaborators = project.collaborators.filter(
-      (collab) => collab.toString() !== req.params.userId
+      (collab) => collab.toString() !== req.params.userId,
     );
 
     await project.save();

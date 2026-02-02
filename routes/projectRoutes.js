@@ -40,6 +40,9 @@ router.post("/:id/collaborators", projectController.addCollaborator);
 // @route   DELETE /api/projects/:id/collaborators/:userId
 // @desc    Remove a collaborator from a project
 // @access  Private (only owner)
-router.delete("/:id/collaborators/:userId", projectController.removeCollaborator);
+router.delete(
+  "/:id/collaborators/:userId",
+  projectController.removeCollaborator,
+);
 
 module.exports = router;
