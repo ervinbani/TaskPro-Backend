@@ -17,7 +17,12 @@ dotenv.config();
 const app = express();
 
 // Enable CORS
-app.use(cors());
+// Allow requests from a specific origin
+const corsOptions = {
+  origin: process.env.CLIENT_URL || "http://localhost:3001",
+};
+
+app.use(cors(corsOptions));
 
 // Middleware to parse JSON
 app.use(express.json());

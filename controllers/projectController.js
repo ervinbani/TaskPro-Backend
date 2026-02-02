@@ -5,7 +5,7 @@ const Project = require("../models/Project");
 // @access  Private
 const createProject = async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, tags } = req.body;
 
     // Validazione: controlla che i campi obbligatori siano presenti
     if (!name || !description) {
@@ -20,6 +20,7 @@ const createProject = async (req, res) => {
       name,
       description,
       owner: req.user._id, // L'utente loggato diventa proprietario
+      tags: tags || [],
     });
 
     res.status(201).json(project);
@@ -97,11 +98,12 @@ const updateProject = async (req, res) => {
     }
 
     // Aggiorna i campi
-    const { name, description, collaborators } = req.body;
+    const { name, description, collaborators, tags } = req.body;
 
     if (name) project.name = name;
     if (description) project.description = description;
     if (collaborators) project.collaborators = collaborators;
+    if (tags !== undefined) project.tags = tags;
 
     const updatedProject = await project.save();
 
