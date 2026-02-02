@@ -19,7 +19,8 @@ const app = express();
 // Enable CORS
 // Allow requests from a specific origin
 const corsOptions = {
-  origin: process.env.CLIENT_URL || "http://localhost:3001",
+  origin:
+    process.env.CLIENT_URL || "https://taskpro-frontend-6016.onrender.com",
 };
 
 app.use(cors(corsOptions));
