@@ -29,7 +29,7 @@ const checkProjectAccess = async (projectId, userId) => {
 // @access  Private
 const createTask = async (req, res) => {
   try {
-    const { title, description, status, tags, comments } = req.body;
+    const { title, description, status, priority, tags, comments } = req.body;
     const projectId = req.params.projectId;
 
     // Validazione: controlla che il titolo sia presente
@@ -50,6 +50,7 @@ const createTask = async (req, res) => {
       title,
       description,
       status: status || "To Do",
+      priority: priority || "Medium",
       project: projectId,
       tags: tags || [],
       comments: comments || [],
@@ -128,7 +129,7 @@ const updateTask = async (req, res) => {
     }
 
     // Aggiorna i campi
-    const { title, description, status, tags, comments } = req.body;
+    const { title, description, status, priority, tags, comments } = req.body;
 
     if (title) task.title = title;
     if (description !== undefined) task.description = description;
@@ -141,6 +142,16 @@ const updateTask = async (req, res) => {
         });
       }
       task.status = status;
+    }
+    if (priority) {
+      // Valida che la priority sia uno dei valori ammessi
+      const validPriorities = ["Low", "Medium", "High"];
+      if (!validPriorities.includes(priority)) {
+        return res.status(400).json({
+          message: `Priority must be one of: ${validPriorities.join(", ")}`,
+        });
+      }
+      task.priority = priority;
     }
     if (tags !== undefined) task.tags = tags;
     if (comments !== undefined) task.comments = comments;

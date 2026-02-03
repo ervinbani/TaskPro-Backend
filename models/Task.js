@@ -21,6 +21,14 @@ const taskSchema = new mongoose.Schema(
       },
       default: "To Do",
     },
+    priority: {
+      type: String,
+      enum: {
+        values: ["Low", "Medium", "High"],
+        message: "{VALUE} is not a valid priority",
+      },
+      default: "Medium",
+    },
     project: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project", // Riferimento al progetto a cui appartiene

@@ -84,7 +84,111 @@ const login = async (req, res, next) => {
   }
 };
 
+// @desc    Get user profile
+// @route   GET /api/user/profile
+// @access  Private
+const getProfile = async (req, res, next) => {
+  try {
+    // req.user è stato impostato dal middleware auth
+    const user = await User.findById(req.user.id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update user profile (username, email)
+// @route   PUT /api/user/profile
+// @access  Private
+const updateProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Aggiorna solo i campi forniti
+    if (req.body.username) {
+      user.username = req.body.username;
+    }
+    if (req.body.email) {
+      user.email = req.body.email;
+    }
+
+    const updatedUser = await user.save();
+
+    res.json({
+      _id: updatedUser._id,
+      username: updatedUser.username,
+      email: updatedUser.email,
+    });
+  } catch (error) {
+    // Gestisce errori di duplicazione (email o username già esistenti)
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({ message: `${field} already exists` });
+    }
+    next(error);
+  }
+};
+
+// @desc    Update user password
+// @route   PUT /api/user/update-password
+// @access  Private
+const updatePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    // Validazione: controlla che entrambi i campi siano presenti
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        message: "Please provide current password and new password",
+      });
+    }
+
+    // Validazione: nuova password deve essere almeno 6 caratteri
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        message: "New password must be at least 6 characters long",
+      });
+    }
+
+    // Trova l'utente (con la password)
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verifica che la password corrente sia corretta
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Current password is incorrect" });
+    }
+
+    // Aggiorna la password
+    // Il pre-save hook hashererà automaticamente la nuova password
+    user.password = newPassword;
+    await user.save();
+
+    res.json({
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
+  getProfile,
+  updateProfile,
+  updatePassword,
 };
