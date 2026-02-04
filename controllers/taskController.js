@@ -29,7 +29,8 @@ const checkProjectAccess = async (projectId, userId) => {
 // @access  Private
 const createTask = async (req, res) => {
   try {
-    const { title, description, status, priority, tags, comments } = req.body;
+    const { title, description, status, priority, dueDate, tags, comments } =
+      req.body;
     const projectId = req.params.projectId;
 
     // Validazione: controlla che il titolo sia presente
@@ -51,6 +52,7 @@ const createTask = async (req, res) => {
       description,
       status: status || "To Do",
       priority: priority || "Medium",
+      dueDate,
       project: projectId,
       tags: tags || [],
       comments: comments || [],
@@ -129,7 +131,8 @@ const updateTask = async (req, res) => {
     }
 
     // Aggiorna i campi
-    const { title, description, status, priority, tags, comments } = req.body;
+    const { title, description, status, priority, dueDate, tags, comments } =
+      req.body;
 
     if (title) task.title = title;
     if (description !== undefined) task.description = description;
@@ -153,6 +156,7 @@ const updateTask = async (req, res) => {
       }
       task.priority = priority;
     }
+    if (dueDate !== undefined) task.dueDate = dueDate;
     if (tags !== undefined) task.tags = tags;
     if (comments !== undefined) task.comments = comments;
 

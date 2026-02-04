@@ -29,6 +29,10 @@ const taskSchema = new mongoose.Schema(
       },
       default: "Medium",
     },
+    dueDate: {
+      type: Date,
+      required: false,
+    },
     project: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project", // Riferimento al progetto a cui appartiene
