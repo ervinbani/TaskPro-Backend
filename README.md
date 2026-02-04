@@ -49,13 +49,67 @@ npm install
 
 ### 2. Configure Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory with the following variables:
 
 ```env
+# Server Configuration
 PORT=3000
+NODE_ENV=development
+
+# MongoDB Configuration
+# For local MongoDB installation:
 MONGO_URI=mongodb://localhost:27017/taskpro
-JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
+
+# Or for MongoDB Atlas (cloud database):
+# MONGO_URI=mongodb+srv://your_username:your_password@cluster0.xxxxx.mongodb.net/taskpro?retryWrites=true&w=majority
+
+# JWT Secret Key
+# Generate a strong random string for production
+# You can use: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+JWT_SECRET=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+
+# Frontend URL for CORS
+# Development:
+CLIENT_URL=http://localhost:3001
+# Production (example):
+# CLIENT_URL=https://your-frontend-app.netlify.app
+
+# GitHub OAuth (Optional - for social login)
+# Get these credentials from: https://github.com/settings/developers
+GITHUB_CLIENT_ID=your_github_client_id_here
+GITHUB_CLIENT_SECRET=your_github_client_secret_here
+GITHUB_CALLBACK_URL=http://localhost:3001/api/users/auth/github/callback
 ```
+
+#### Environment Variables Explained:
+
+| Variable               | Description                               | Example                        |
+| ---------------------- | ----------------------------------------- | ------------------------------ |
+| `PORT`                 | Port number where the server will run     | `3000` or `5000`               |
+| `NODE_ENV`             | Environment mode (development/production) | `development`                  |
+| `MONGO_URI`            | MongoDB connection string                 | See examples above             |
+| `JWT_SECRET`           | Secret key for JWT token generation       | Use a long random string       |
+| `CLIENT_URL`           | Frontend application URL for CORS         | `http://localhost:3001`        |
+| `GITHUB_CLIENT_ID`     | GitHub OAuth App Client ID (optional)     | From GitHub Developer Settings |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth App Secret (optional)        | From GitHub Developer Settings |
+| `GITHUB_CALLBACK_URL`  | OAuth callback URL (optional)             | Your callback endpoint         |
+
+#### MongoDB Setup Options:
+
+**Option 1: Local MongoDB**
+
+1. Install MongoDB locally
+2. Use: `MONGO_URI=mongodb://localhost:27017/taskpro`
+
+**Option 2: MongoDB Atlas (Recommended)**
+
+1. Create free account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Create a new cluster
+3. Create a database user
+4. Get connection string and replace `<username>`, `<password>`, and database name
+5. Whitelist your IP address (or allow access from anywhere for development)
+
+**Security Note:** Never commit your `.env` file to version control! It's already included in `.gitignore`.
 
 ### 3. Start MongoDB
 
