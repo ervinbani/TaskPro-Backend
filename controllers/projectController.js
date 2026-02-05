@@ -8,19 +8,19 @@ const createProject = async (req, res) => {
   try {
     const { name, description, tags } = req.body;
 
-    // Validazione: controlla che i campi obbligatori siano presenti
+    // Validation: check that required fields are present
     if (!name || !description) {
       return res
         .status(400)
         .json({ message: "Please provide name and description" });
     }
 
-    // Crea il progetto con l'utente loggato come owner
-    // req.user viene dal middleware 'protect'
+    // Create the project with the logged-in user as owner
+    // req.user comes from the 'protect' middleware
     const project = await Project.create({
       name,
       description,
-      owner: req.user._id, // L'utente loggato diventa proprietario
+      owner: req.user._id, // The logged-in user becomes the owner
       tags: tags || [],
     });
 
@@ -35,13 +35,13 @@ const createProject = async (req, res) => {
 // @access  Private
 const getProjects = async (req, res) => {
   try {
-    // Trova tutti i progetti dove l'utente è owner O collaborator
+    // Find all projects where the user is owner OR collaborator
     const projects = await Project.find({
       $or: [{ owner: req.user._id }, { collaborators: req.user._id }],
     })
-      .populate("owner", "username email") // Popola i dati dell'owner
-      .populate("collaborators", "username email") // Popola i dati dei collaboratori
-      .sort({ createdAt: -1 }); // Ordina per data creazione (più recenti prima)
+      .populate("owner", "username email") // Populate owner data
+      .populate("collaborators", "username email") // Populate collaborators data
+      .sort({ createdAt: -1 }); // Sort by creation date (most recent first)
 
     res.json(projects);
   } catch (error) {
@@ -62,7 +62,7 @@ const getProjectById = async (req, res) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    // Authorization: controlla che l'utente sia owner o collaborator
+    // Authorization: check that the user is owner or collaborator
     const isOwner = project.owner._id.toString() === req.user._id.toString();
     const isCollaborator = project.collaborators.some(
       (collab) => collab._id.toString() === req.user._id.toString(),
@@ -91,14 +91,14 @@ const updateProject = async (req, res) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    // Authorization: SOLO l'owner può aggiornare il progetto
+    // Authorization: ONLY the owner can update the project
     if (project.owner.toString() !== req.user._id.toString()) {
       return res
         .status(403)
         .json({ message: "Not authorized to update this project" });
     }
 
-    // Aggiorna i campi
+    // Update fields
     const { name, description, collaborators, tags } = req.body;
 
     if (name) project.name = name;
@@ -125,7 +125,7 @@ const deleteProject = async (req, res) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    // Authorization: SOLO l'owner può eliminare il progetto
+    // Authorization: ONLY the owner can delete the project
     if (project.owner.toString() !== req.user._id.toString()) {
       return res
         .status(403)
@@ -159,39 +159,39 @@ const addCollaborator = async (req, res) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    // Authorization: SOLO l'owner può aggiungere collaboratori
+    // Authorization: ONLY the owner can add collaborators
     if (project.owner.toString() !== req.user._id.toString()) {
       return res
         .status(403)
         .json({ message: "Not authorized to add collaborators" });
     }
 
-    // Cerca l'utente per email o username
+    // Find user by email or username
     const user = await User.findOne(email ? { email } : { username });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Controlla se è già un collaboratore
+    // Check if already a collaborator
     if (project.collaborators.includes(user._id)) {
       return res
         .status(400)
         .json({ message: "User is already a collaborator" });
     }
 
-    // Controlla se l'utente è l'owner
+    // Check if the user is the owner
     if (project.owner.toString() === user._id.toString()) {
       return res
         .status(400)
         .json({ message: "Owner cannot be added as collaborator" });
     }
 
-    // Aggiungi il collaboratore
+    // Add the collaborator
     project.collaborators.push(user._id);
     await project.save();
 
-    // Popola i collaboratori prima di restituire
+    // Populate collaborators before returning
     await project.populate("collaborators", "username email");
 
     res.json(project);
@@ -211,21 +211,21 @@ const removeCollaborator = async (req, res) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    // Authorization: SOLO l'owner può rimuovere collaboratori
+    // Authorization: ONLY the owner can remove collaborators
     if (project.owner.toString() !== req.user._id.toString()) {
       return res
         .status(403)
         .json({ message: "Not authorized to remove collaborators" });
     }
 
-    // Rimuovi il collaboratore
+    // Remove the collaborator
     project.collaborators = project.collaborators.filter(
       (collab) => collab.toString() !== req.params.userId,
     );
 
     await project.save();
 
-    // Popola i collaboratori prima di restituire
+    // Populate collaborators before returning
     await project.populate("collaborators", "username email");
 
     res.json(project);

@@ -3,8 +3,8 @@ const router = express.Router();
 const taskController = require("../controllers/taskController");
 const { protect } = require("../middleware/auth");
 
-// Applica il middleware protect a TUTTE le routes
-// Tutte le routes sotto richiedono autenticazione
+// Apply the protect middleware to ALL routes
+// All routes below require authentication
 router.use(protect);
 
 // @route   POST /api/projects/:projectId/tasks

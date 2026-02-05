@@ -1,7 +1,7 @@
 const Task = require("../models/Task");
 const Project = require("../models/Project");
 
-// Helper function per verificare accesso al progetto
+// Helper function to verify project access
 const checkProjectAccess = async (projectId, userId) => {
   const project = await Project.findById(projectId);
 
@@ -33,12 +33,12 @@ const createTask = async (req, res) => {
       req.body;
     const projectId = req.params.projectId;
 
-    // Validazione: controlla che il titolo sia presente
+    // Validation: check that the title is present
     if (!title) {
       return res.status(400).json({ message: "Please provide a task title" });
     }
 
-    // Verifica accesso al progetto
+    // Verify project access
     const access = await checkProjectAccess(projectId, req.user._id);
     if (!access.authorized) {
       return res
@@ -46,7 +46,7 @@ const createTask = async (req, res) => {
         .json({ message: access.error });
     }
 
-    // Crea il task
+    // Create the task
     const task = await Task.create({
       title,
       description,
@@ -71,7 +71,7 @@ const getTasks = async (req, res) => {
   try {
     const projectId = req.params.projectId;
 
-    // Verifica accesso al progetto
+    // Verify project access
     const access = await checkProjectAccess(projectId, req.user._id);
     if (!access.authorized) {
       return res
@@ -79,10 +79,10 @@ const getTasks = async (req, res) => {
         .json({ message: access.error });
     }
 
-    // Trova tutti i task del progetto
+    // Find all tasks of the project
     const tasks = await Task.find({ project: projectId }).sort({
       createdAt: -1,
-    }); // Ordina per data creazione
+    }); // Sort by creation date
 
     res.json(tasks);
   } catch (error) {
@@ -101,7 +101,7 @@ const getTaskById = async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    // Verifica accesso al progetto del task
+    // Verify access to the task's project
     const access = await checkProjectAccess(task.project._id, req.user._id);
     if (!access.authorized) {
       return res.status(403).json({ message: access.error });
@@ -124,20 +124,20 @@ const updateTask = async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    // Verifica accesso al progetto del task
+    // Verify access to the task's project
     const access = await checkProjectAccess(task.project._id, req.user._id);
     if (!access.authorized) {
       return res.status(403).json({ message: access.error });
     }
 
-    // Aggiorna i campi
+    // Update fields
     const { title, description, status, priority, dueDate, tags, comments } =
       req.body;
 
     if (title) task.title = title;
     if (description !== undefined) task.description = description;
     if (status) {
-      // Valida che lo status sia uno dei valori ammessi
+      // Validate that the status is one of the allowed values
       const validStatuses = ["To Do", "In Progress", "Done"];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({
@@ -147,7 +147,7 @@ const updateTask = async (req, res) => {
       task.status = status;
     }
     if (priority) {
-      // Valida che la priority sia uno dei valori ammessi
+      // Validate that the priority is one of the allowed values
       const validPriorities = ["Low", "Medium", "High"];
       if (!validPriorities.includes(priority)) {
         return res.status(400).json({
@@ -179,7 +179,7 @@ const deleteTask = async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    // Verifica accesso al progetto del task
+    // Verify access to the task's project
     const access = await checkProjectAccess(task.project._id, req.user._id);
     if (!access.authorized) {
       return res.status(403).json({ message: access.error });

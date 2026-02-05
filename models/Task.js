@@ -35,7 +35,7 @@ const taskSchema = new mongoose.Schema(
     },
     project: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Project", // Riferimento al progetto a cui appartiene
+      ref: "Project", // Reference to the project it belongs to
       required: true,
     },
     tags: [
@@ -69,7 +69,7 @@ const taskSchema = new mongoose.Schema(
     ],
   },
   {
-    timestamps: true, // Aggiunge createdAt e updatedAt
+    timestamps: true, // Adds createdAt and updatedAt
   },
 );
 

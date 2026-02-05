@@ -16,13 +16,13 @@ const projectSchema = new mongoose.Schema(
     },
     owner: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // Riferimento al modello User
+      ref: "User", // Reference to the User model
       required: true,
     },
     collaborators: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User", // Array di riferimenti agli utenti collaboratori
+        ref: "User", // Array of references to collaborator users
       },
     ],
     tags: [
@@ -33,7 +33,7 @@ const projectSchema = new mongoose.Schema(
     ],
   },
   {
-    timestamps: true, // Aggiunge createdAt e updatedAt
+    timestamps: true, // Adds createdAt and updatedAt
   },
 );
 
