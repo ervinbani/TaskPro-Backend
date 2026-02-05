@@ -225,11 +225,13 @@ Permanently delete your account and all associated data.
 **⚠️ WARNING: This action cannot be undone!**
 
 **What gets deleted:**
+
 - Your user account
 - All projects you own (and their tasks)
 - Your collaborator status from other users' projects
 
 **What is preserved:**
+
 - Projects owned by other users remain intact
 
 **Endpoint:** `DELETE http://localhost:3000/api/user/account`
@@ -723,21 +725,21 @@ Headers: Authorization: Bearer TOKEN
 
 ## 📝 API Summary
 
-| Method | Endpoint                               | Auth    | Description                    |
-| ------ | -------------------------------------- | ------- | ------------------------------ |
-| POST   | `/api/user/register`                   | Public  | Register new user              |
-| POST   | `/api/user/login`                      | Public  | Login user                     |
-| DELETE | `/api/user/account`                    | Private | Delete account (cascade)       |
-| POST   | `/api/projects`                        | Private | Create project                 |
-| GET    | `/api/projects`                        | Private | Get all projects               |
-| GET    | `/api/projects/:id`                    | Private | Get project by ID              |
-| PUT    | `/api/projects/:id`                    | Private | Update project                 |
-| DELETE | `/api/projects/:id`                    | Private | Delete project                 |
-| POST   | `/api/tasks/projects/:projectId/tasks` | Private | Create task                    |
-| GET    | `/api/tasks/projects/:projectId/tasks` | Private | Get project tasks              |
-| GET    | `/api/tasks/:id`                       | Private | Get task by ID    |
-| PUT    | `/api/tasks/:id`                       | Private | Update task       |
-| DELETE | `/api/tasks/:id`                       | Private | Delete task       |
+| Method | Endpoint                               | Auth    | Description              |
+| ------ | -------------------------------------- | ------- | ------------------------ |
+| POST   | `/api/user/register`                   | Public  | Register new user        |
+| POST   | `/api/user/login`                      | Public  | Login user               |
+| DELETE | `/api/user/account`                    | Private | Delete account (cascade) |
+| POST   | `/api/projects`                        | Private | Create project           |
+| GET    | `/api/projects`                        | Private | Get all projects         |
+| GET    | `/api/projects/:id`                    | Private | Get project by ID        |
+| PUT    | `/api/projects/:id`                    | Private | Update project           |
+| DELETE | `/api/projects/:id`                    | Private | Delete project           |
+| POST   | `/api/tasks/projects/:projectId/tasks` | Private | Create task              |
+| GET    | `/api/tasks/projects/:projectId/tasks` | Private | Get project tasks        |
+| GET    | `/api/tasks/:id`                       | Private | Get task by ID           |
+| PUT    | `/api/tasks/:id`                       | Private | Update task              |
+| DELETE | `/api/tasks/:id`                       | Private | Delete task              |
 
 ---
 

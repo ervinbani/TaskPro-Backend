@@ -224,7 +224,8 @@ const deleteAccount = async (req, res, next) => {
     await User.findByIdAndDelete(userId);
 
     res.json({
-      message: "Account deleted successfully. All your projects and tasks have been removed.",
+      message:
+        "Account deleted successfully. All your projects and tasks have been removed.",
     });
   } catch (error) {
     next(error);
