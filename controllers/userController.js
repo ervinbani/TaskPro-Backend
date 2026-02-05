@@ -185,10 +185,57 @@ const updatePassword = async (req, res, next) => {
   }
 };
 
+// @desc    Delete user account (with cascade)
+// @route   DELETE /api/user/account
+// @access  Private
+const deleteAccount = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    // Trova l'utente
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Importa i modelli necessari
+    const Project = require("../models/Project");
+    const Task = require("../models/Task");
+
+    // 1. Trova tutti i progetti dove l'utente è owner
+    const ownedProjects = await Project.find({ owner: userId });
+    const ownedProjectIds = ownedProjects.map((project) => project._id);
+
+    // 2. Elimina tutti i task associati a questi progetti
+    if (ownedProjectIds.length > 0) {
+      await Task.deleteMany({ project: { $in: ownedProjectIds } });
+    }
+
+    // 3. Elimina tutti i progetti di cui è owner
+    await Project.deleteMany({ owner: userId });
+
+    // 4. Rimuovi l'utente come collaboratore da tutti i progetti di altri
+    await Project.updateMany(
+      { collaborators: userId },
+      { $pull: { collaborators: userId } },
+    );
+
+    // 5. Elimina l'account utente
+    await User.findByIdAndDelete(userId);
+
+    res.json({
+      message: "Account deleted successfully. All your projects and tasks have been removed.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
   getProfile,
   updateProfile,
   updatePassword,
+  deleteAccount,
 };

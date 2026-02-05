@@ -28,4 +28,9 @@ router.put("/profile", protect, userController.updateProfile);
 // @access  Private
 router.put("/update-password", protect, userController.updatePassword);
 
+// @route   DELETE /api/user/account
+// @desc    Delete user account (cascade delete all owned projects and tasks)
+// @access  Private
+router.delete("/account", protect, userController.deleteAccount);
+
 module.exports = router;
