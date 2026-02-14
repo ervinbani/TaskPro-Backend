@@ -1,5 +1,10 @@
 const Project = require("../models/Project");
 const User = require("../models/User");
+const {
+  createNotification,
+  createNotifications,
+  getProjectMembers,
+} = require("../utils/notificationService");
 
 // @desc    Create a new project
 // @route   POST /api/projects
@@ -108,6 +113,17 @@ const updateProject = async (req, res) => {
 
     const updatedProject = await project.save();
 
+    // Notify all collaborators about the update
+    const members = getProjectMembers(project, req.user._id);
+    if (members.length > 0) {
+      await createNotifications(members, {
+        sender: req.user._id,
+        type: "PROJECT_UPDATED",
+        message: `${req.user.username} has updated the project '${project.name}'`,
+        project: project._id,
+      });
+    }
+
     res.json(updatedProject);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -130,6 +146,16 @@ const deleteProject = async (req, res) => {
       return res
         .status(403)
         .json({ message: "Not authorized to delete this project" });
+    }
+
+    // Notify all collaborators about the deletion
+    if (project.collaborators.length > 0) {
+      await createNotifications(project.collaborators, {
+        sender: req.user._id,
+        type: "PROJECT_DELETED",
+        message: `The project '${project.name}' has been deleted`,
+        project: project._id,
+      });
     }
 
     await project.deleteOne();
@@ -191,6 +217,15 @@ const addCollaborator = async (req, res) => {
     project.collaborators.push(user._id);
     await project.save();
 
+    // Create notification for the added collaborator
+    await createNotification({
+      recipient: user._id,
+      sender: req.user._id,
+      type: "PROJECT_INVITE",
+      message: `${req.user.username} has added you to the project '${project.name}'`,
+      project: project._id,
+    });
+
     // Populate collaborators before returning
     await project.populate("collaborators", "username email");
 
@@ -217,6 +252,15 @@ const removeCollaborator = async (req, res) => {
         .status(403)
         .json({ message: "Not authorized to remove collaborators" });
     }
+
+    // Create notification before removing
+    await createNotification({
+      recipient: req.params.userId,
+      sender: req.user._id,
+      type: "PROJECT_REMOVED",
+      message: `You have been removed from the project '${project.name}'`,
+      project: project._id,
+    });
 
     // Remove the collaborator
     project.collaborators = project.collaborators.filter(

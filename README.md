@@ -21,18 +21,23 @@ TaskPro-Backend/
 ├── controllers/
 │   ├── userController.js     # User logic (register, login)
 │   ├── projectController.js  # Project CRUD operations
-│   └── taskController.js     # Task CRUD operations
+│   ├── taskController.js     # Task CRUD operations
+│   └── notificationController.js  # Notification operations
 ├── middleware/
 │   ├── auth.js              # JWT authentication middleware
 │   └── errorHandler.js      # Centralized error handling
 ├── models/
 │   ├── User.js              # User schema (username, email, password)
 │   ├── Project.js           # Project schema (name, description, owner, collaborators)
-│   └── Task.js              # Task schema (title, description, status, project)
+│   ├── Task.js              # Task schema (title, description, status, project)
+│   └── Notification.js      # Notification schema (recipient, sender, type, message)
 ├── routes/
 │   ├── userRoutes.js        # User routes (register, login)
 │   ├── projectRoutes.js     # Project routes
-│   └── taskRoutes.js        # Task routes
+│   ├── taskRoutes.js        # Task routes
+│   └── notificationRoutes.js  # Notification routes
+├── utils/
+│   └── notificationService.js  # Notification helper functions
 ├── .env                     # Environment variables
 ├── .gitignore              # Git ignore file
 ├── package.json            # Dependencies
@@ -620,7 +625,397 @@ Authorization: Bearer YOUR_JWT_TOKEN_HERE
 
 ---
 
-## 🔒 Authorization & Security
+### 13. Add Todo to Task
+
+Add a new todo item to a task's checklist.
+
+**Endpoint:** `POST http://localhost:3000/api/tasks/:id/todos`
+
+**Example:** `POST http://localhost:3000/api/tasks/65a1b2c3d4e5f6g7h8i9j0k3/todos`
+
+**Headers:**
+
+```
+Content-Type: application/json
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+```
+
+**Body (JSON):**
+
+```json
+{
+  "text": "Create wireframes for homepage"
+}
+```
+
+**Expected Response (200):**
+
+```json
+{
+  "_id": "65a1b2c3d4e5f6g7h8i9j0k3",
+  "title": "Design homepage mockup",
+  "description": "Create mockup for the new homepage",
+  "status": "To Do",
+  "project": "65a1b2c3d4e5f6g7h8i9j0k2",
+  "todos": [
+    {
+      "_id": "65a1b2c3d4e5f6g7h8i9j0k8",
+      "text": "Create wireframes for homepage",
+      "completed": false,
+      "createdAt": "2026-01-31T11:00:00.000Z"
+    }
+  ],
+  "todoProgress": 0,
+  "createdAt": "2026-01-31T10:40:00.000Z",
+  "updatedAt": "2026-01-31T11:00:00.000Z"
+}
+```
+
+**Notes:**
+
+- Maximum 50 todos per task
+- Creates notification for project collaborators when todo is added
+- Returns updated task with new todo included
+
+---
+
+### 14. Update Todo
+
+Update a todo item in a task (change text or toggle completion status).
+
+**Endpoint:** `PUT http://localhost:3000/api/tasks/:id/todos/:todoId`
+
+**Example:** `PUT http://localhost:3000/api/tasks/65a1b2c3d4e5f6g7h8i9j0k3/todos/65a1b2c3d4e5f6g7h8i9j0k8`
+
+**Headers:**
+
+```
+Content-Type: application/json
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+```
+
+**Body (JSON) - Toggle completion:**
+
+```json
+{
+  "completed": true
+}
+```
+
+**OR Body (JSON) - Update text:**
+
+```json
+{
+  "text": "Create detailed wireframes with annotations"
+}
+```
+
+**Expected Response (200):**
+
+```json
+{
+  "_id": "65a1b2c3d4e5f6g7h8i9j0k3",
+  "title": "Design homepage mockup",
+  "description": "Create mockup for the new homepage",
+  "status": "To Do",
+  "project": "65a1b2c3d4e5f6g7h8i9j0k2",
+  "todos": [
+    {
+      "_id": "65a1b2c3d4e5f6g7h8i9j0k8",
+      "text": "Create wireframes for homepage",
+      "completed": true,
+      "completedAt": "2026-01-31T11:30:00.000Z",
+      "completedBy": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "createdAt": "2026-01-31T11:00:00.000Z"
+    }
+  ],
+  "todoProgress": 100,
+  "createdAt": "2026-01-31T10:40:00.000Z",
+  "updatedAt": "2026-01-31T11:30:00.000Z"
+}
+```
+
+**Notes:**
+
+- Can update either `text` or `completed` status
+- When marking as completed, automatically records `completedAt` timestamp and `completedBy` user
+- When all todos are completed, creates special "ALL_TODOS_COMPLETED" notification
+- Returns updated task with modified todo
+
+---
+
+### 15. Delete Todo
+
+Remove a todo item from a task.
+
+**Endpoint:** `DELETE http://localhost:3000/api/tasks/:id/todos/:todoId`
+
+**Example:** `DELETE http://localhost:3000/api/tasks/65a1b2c3d4e5f6g7h8i9j0k3/todos/65a1b2c3d4e5f6g7h8i9j0k8`
+
+**Headers:**
+
+```
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+```
+
+**Expected Response (200):**
+
+```json
+{
+  "_id": "65a1b2c3d4e5f6g7h8i9j0k3",
+  "title": "Design homepage mockup",
+  "description": "Create mockup for the new homepage",
+  "status": "To Do",
+  "project": "65a1b2c3d4e5f6g7h8i9j0k2",
+  "todos": [],
+  "todoProgress": 0,
+  "createdAt": "2026-01-31T10:40:00.000Z",
+  "updatedAt": "2026-01-31T11:35:00.000Z"
+}
+```
+
+**Notes:**
+
+- Only task owner or project owner can delete todos
+- Returns updated task with todo removed
+- Updates `todoProgress` automatically
+
+---
+
+## � Notification Endpoints
+
+**All notification endpoints require authentication!**
+
+**How it works:** When users perform actions (add collaborators, create/update/delete tasks, etc.), notifications are automatically created for relevant users. The frontend should poll these endpoints periodically (every 30 seconds) to check for new notifications.
+
+### 13. Get Unread Notification Count
+
+Get the count of unread notifications (for badge display).
+
+**Endpoint:** `GET http://localhost:3000/api/notifications/unread/count`
+
+**Headers:**
+
+```
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+```
+
+**Expected Response (200):**
+
+```json
+{
+  "count": 3
+}
+```
+
+**Usage:** Call this endpoint every 30 seconds to update the notification badge in your UI.
+
+---
+
+### 17. Get All Notifications
+
+Get all notifications for the logged-in user.
+
+**Endpoint:** `GET http://localhost:3000/api/notifications`
+
+**Headers:**
+
+```
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+```
+
+**Query Parameters (optional):**
+
+- `limit` - Number of notifications to return (default: 20)
+- `skip` - Number of notifications to skip for pagination (default: 0)
+- `unreadOnly` - Set to "true" to get only unread notifications (default: "false")
+
+**Example:** `GET http://localhost:3000/api/notifications?limit=10&unreadOnly=true`
+
+**Expected Response (200):**
+
+```json
+[
+  {
+    "_id": "65a1b2c3d4e5f6g7h8i9j0k5",
+    "recipient": "65a1b2c3d4e5f6g7h8i9j0k1",
+    "sender": {
+      "_id": "65a1b2c3d4e5f6g7h8i9j0k6",
+      "username": "luigi",
+      "email": "luigi@example.com"
+    },
+    "type": "PROJECT_INVITE",
+    "message": "luigi has added you to the project 'Website Redesign'",
+    "project": {
+      "_id": "65a1b2c3d4e5f6g7h8i9j0k2",
+      "name": "Website Redesign"
+    },
+    "task": null,
+    "isRead": false,
+    "readAt": null,
+    "data": {},
+    "createdAt": "2026-01-31T11:00:00.000Z",
+    "updatedAt": "2026-01-31T11:00:00.000Z"
+  },
+  {
+    "_id": "65a1b2c3d4e5f6g7h8i9j0k7",
+    "recipient": "65a1b2c3d4e5f6g7h8i9j0k1",
+    "sender": {
+      "_id": "65a1b2c3d4e5f6g7h8i9j0k6",
+      "username": "luigi",
+      "email": "luigi@example.com"
+    },
+    "type": "TASK_STATUS_CHANGED",
+    "message": "luigi moved 'Design homepage mockup' to In Progress",
+    "project": {
+      "_id": "65a1b2c3d4e5f6g7h8i9j0k2",
+      "name": "Website Redesign"
+    },
+    "task": {
+      "_id": "65a1b2c3d4e5f6g7h8i9j0k3",
+      "title": "Design homepage mockup"
+    },
+    "isRead": true,
+    "readAt": "2026-01-31T11:05:00.000Z",
+    "data": {
+      "oldStatus": "To Do",
+      "newStatus": "In Progress"
+    },
+    "createdAt": "2026-01-31T11:02:00.000Z",
+    "updatedAt": "2026-01-31T11:05:00.000Z"
+  }
+]
+```
+
+---
+
+### 18. Mark Notification as Read
+
+Mark a specific notification as read.
+
+**Endpoint:** `PUT http://localhost:3000/api/notifications/:id/read`
+
+**Example:** `PUT http://localhost:3000/api/notifications/65a1b2c3d4e5f6g7h8i9j0k5/read`
+
+**Headers:**
+
+```
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+```
+
+**Expected Response (200):**
+
+```json
+{
+  "_id": "65a1b2c3d4e5f6g7h8i9j0k5",
+  "recipient": "65a1b2c3d4e5f6g7h8i9j0k1",
+  "sender": "65a1b2c3d4e5f6g7h8i9j0k6",
+  "type": "PROJECT_INVITE",
+  "message": "luigi has added you to the project 'Website Redesign'",
+  "project": "65a1b2c3d4e5f6g7h8i9j0k2",
+  "task": null,
+  "isRead": true,
+  "readAt": "2026-01-31T11:10:00.000Z",
+  "data": {},
+  "createdAt": "2026-01-31T11:00:00.000Z",
+  "updatedAt": "2026-01-31T11:10:00.000Z"
+}
+```
+
+---
+
+### 19. Mark All Notifications as Read
+
+Mark all notifications as read for the logged-in user.
+
+**Endpoint:** `PUT http://localhost:3000/api/notifications/mark-all-read`
+
+**Headers:**
+
+```
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+```
+
+**Expected Response (200):**
+
+```json
+{
+  "message": "All notifications marked as read",
+  "modifiedCount": 5
+}
+```
+
+---
+
+### 20. Delete a Notification
+
+Delete a specific notification.
+
+**Endpoint:** `DELETE http://localhost:3000/api/notifications/:id`
+
+**Example:** `DELETE http://localhost:3000/api/notifications/65a1b2c3d4e5f6g7h8i9j0k5`
+
+**Headers:**
+
+```
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+```
+
+**Expected Response (200):**
+
+```json
+{
+  "message": "Notification deleted successfully"
+}
+```
+
+---
+
+### 21. Clear All Read Notifications
+
+Delete all read notifications for the logged-in user.
+
+**Endpoint:** `DELETE http://localhost:3000/api/notifications/clear-read`
+
+**Headers:**
+
+```
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+```
+
+**Expected Response (200):**
+
+```json
+{
+  "message": "Read notifications cleared",
+  "deletedCount": 10
+}
+```
+
+---
+
+### 📋 Notification Types
+
+The system generates the following notification types:
+
+| Type                  | Description                                       | Triggered By                     |
+| --------------------- | ------------------------------------------------- | -------------------------------- |
+| `PROJECT_INVITE`      | You were added as a collaborator to a project     | Owner adds you to project        |
+| `PROJECT_REMOVED`     | You were removed from a project                   | Owner removes you from project   |
+| `PROJECT_UPDATED`     | A project you're part of was updated              | Owner updates project details    |
+| `PROJECT_DELETED`     | A project you were part of was deleted            | Owner deletes project            |
+| `TASK_CREATED`        | A new task was created in your project            | Collaborator creates task        |
+| `TASK_STATUS_CHANGED` | A task status changed (To Do → In Progress, etc.) | Collaborator changes task status |
+| `TASK_DELETED`        | A task was deleted from your project              | Collaborator deletes task        |
+| `TODO_ADDED`          | A new todo was added to a task                    | Collaborator adds todo           |
+| `TODO_COMPLETED`      | A todo item was marked as completed               | Collaborator completes todo      |
+| `ALL_TODOS_COMPLETED` | All todos in a task were completed                | Last todo completion             |
+
+**Note:** You won't receive notifications for your own actions.
+
+---
+
+## �🔒 Authorization & Security
 
 ### Authentication Flow:
 
@@ -725,21 +1120,30 @@ Headers: Authorization: Bearer TOKEN
 
 ## 📝 API Summary
 
-| Method | Endpoint                               | Auth    | Description              |
-| ------ | -------------------------------------- | ------- | ------------------------ |
-| POST   | `/api/user/register`                   | Public  | Register new user        |
-| POST   | `/api/user/login`                      | Public  | Login user               |
-| DELETE | `/api/user/account`                    | Private | Delete account (cascade) |
-| POST   | `/api/projects`                        | Private | Create project           |
-| GET    | `/api/projects`                        | Private | Get all projects         |
-| GET    | `/api/projects/:id`                    | Private | Get project by ID        |
-| PUT    | `/api/projects/:id`                    | Private | Update project           |
-| DELETE | `/api/projects/:id`                    | Private | Delete project           |
-| POST   | `/api/tasks/projects/:projectId/tasks` | Private | Create task              |
-| GET    | `/api/tasks/projects/:projectId/tasks` | Private | Get project tasks        |
-| GET    | `/api/tasks/:id`                       | Private | Get task by ID           |
-| PUT    | `/api/tasks/:id`                       | Private | Update task              |
-| DELETE | `/api/tasks/:id`                       | Private | Delete task              |
+| Method | Endpoint                               | Auth    | Description                  |
+| ------ | -------------------------------------- | ------- | ---------------------------- |
+| POST   | `/api/user/register`                   | Public  | Register new user            |
+| POST   | `/api/user/login`                      | Public  | Login user                   |
+| DELETE | `/api/user/account`                    | Private | Delete account (cascade)     |
+| POST   | `/api/projects`                        | Private | Create project               |
+| GET    | `/api/projects`                        | Private | Get all projects             |
+| GET    | `/api/projects/:id`                    | Private | Get project by ID            |
+| PUT    | `/api/projects/:id`                    | Private | Update project               |
+| DELETE | `/api/projects/:id`                    | Private | Delete project               |
+| POST   | `/api/tasks/projects/:projectId/tasks` | Private | Create task                  |
+| GET    | `/api/tasks/projects/:projectId/tasks` | Private | Get project tasks            |
+| GET    | `/api/tasks/:id`                       | Private | Get task by ID               |
+| PUT    | `/api/tasks/:id`                       | Private | Update task                  |
+| DELETE | `/api/tasks/:id`                       | Private | Delete task                  |
+| POST   | `/api/tasks/:id/todos`                 | Private | Add todo to task             |
+| PUT    | `/api/tasks/:id/todos/:todoId`         | Private | Update todo (text/completed) |
+| DELETE | `/api/tasks/:id/todos/:todoId`         | Private | Delete todo from task        |
+| GET    | `/api/notifications/unread/count`      | Private | Get unread count (for badge) |
+| GET    | `/api/notifications`                   | Private | Get all notifications        |
+| PUT    | `/api/notifications/:id/read`          | Private | Mark notification as read    |
+| PUT    | `/api/notifications/mark-all-read`     | Private | Mark all as read             |
+| DELETE | `/api/notifications/:id`               | Private | Delete notification          |
+| DELETE | `/api/notifications/clear-read`        | Private | Clear all read notifications |
 
 ---
 

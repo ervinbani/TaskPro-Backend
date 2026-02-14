@@ -9,6 +9,7 @@ const { errorHandler } = require("./middleware/errorHandler");
 const userRoutes = require("./routes/userRoutes");
 const projectRoutes = require("./routes/projectRoutes");
 const taskRoutes = require("./routes/taskRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -40,6 +41,7 @@ app.get("/", (req, res) => {
 app.use("/api/user", userRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Error handler middleware (deve essere DOPO le routes)
 app.use(errorHandler);

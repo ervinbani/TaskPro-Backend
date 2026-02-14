@@ -32,4 +32,21 @@ router.put("/:id", taskController.updateTask);
 // @access  Private
 router.delete("/:id", taskController.deleteTask);
 
+// ============ TODO ROUTES ============
+
+// @route   POST /api/tasks/:id/todos
+// @desc    Add a todo to a task
+// @access  Private
+router.post("/:id/todos", taskController.addTodo);
+
+// @route   PUT /api/tasks/:id/todos/:todoId
+// @desc    Update a todo (toggle completed or edit text)
+// @access  Private
+router.put("/:id/todos/:todoId", taskController.updateTodo);
+
+// @route   DELETE /api/tasks/:id/todos/:todoId
+// @desc    Delete a todo from a task
+// @access  Private
+router.delete("/:id/todos/:todoId", taskController.deleteTodo);
+
 module.exports = router;

@@ -56,12 +56,19 @@
 
 ## ✨ Key Features
 
-### 1. **User Authentication System**
+### 1. **User Authentication & Profile Management**
 
 - User registration with email validation
 - Secure login with JWT token generation
 - Password hashing using bcrypt (10 salt rounds)
 - Protected routes with JWT middleware
+- **Profile management:**
+  - Update username and email
+  - Change password with current password verification
+  - **Account deletion with cascade:**
+    - Deletes all owned projects and their tasks
+    - Removes user from collaborator lists in other projects
+    - Complete data cleanup for privacy compliance
 
 ### 2. **Project Management**
 
@@ -245,6 +252,21 @@ const checkProjectAccess = async (projectId, userId) => {
 - Clear error messages for expired vs invalid tokens
 - Frontend can handle token refresh based on error type
 
+### 6. **Account Deletion with Data Integrity**
+
+**Challenge:** Safely deleting user accounts while maintaining database integrity and cleaning up all related data.
+
+**Solution:**
+
+- Implemented cascade deletion logic:
+  - Delete all projects owned by the user
+  - Delete all tasks within those projects
+  - Remove user from collaborators in other projects
+  - Finally delete the user account
+- Transaction-like approach ensures complete cleanup
+- Preserves other users' projects and data
+- GDPR/privacy compliance through complete data removal
+
 ---
 
 ## 🚀 Future Improvements
@@ -315,9 +337,12 @@ Local: http://localhost:5000
 ### User Routes
 
 ```http
-POST   /api/user/register     # Register new user
-POST   /api/user/login        # Login user
-GET    /api/user/me           # Get current user profile
+POST   /api/user/register          # Register new user
+POST   /api/user/login             # Login user
+GET    /api/user/profile           # Get current user profile
+PUT    /api/user/profile           # Update user profile (username, email)
+PUT    /api/user/update-password   # Change password
+DELETE /api/user/account           # Delete account (cascade)
 ```
 
 ### Project Routes

@@ -67,11 +67,49 @@ const taskSchema = new mongoose.Schema(
         },
       },
     ],
+    todos: [
+      {
+        text: {
+          type: String,
+          required: [true, "Todo text is required"],
+          trim: true,
+          maxlength: [200, "Todo text cannot exceed 200 characters"],
+        },
+        completed: {
+          type: Boolean,
+          default: false,
+        },
+        completedAt: {
+          type: Date,
+          default: null,
+        },
+        completedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          default: null,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     timestamps: true, // Adds createdAt and updatedAt
   },
 );
+
+// Virtual for calculating todo progress percentage
+taskSchema.virtual("todoProgress").get(function () {
+  if (!this.todos || this.todos.length === 0) return 0;
+  const completedCount = this.todos.filter((todo) => todo.completed).length;
+  return Math.round((completedCount / this.todos.length) * 100);
+});
+
+// Ensure virtuals are included in JSON output
+taskSchema.set("toJSON", { virtuals: true });
+taskSchema.set("toObject", { virtuals: true });
 
 const Task = mongoose.model("Task", taskSchema);
 
