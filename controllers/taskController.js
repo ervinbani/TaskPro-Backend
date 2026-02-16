@@ -503,9 +503,7 @@ const updateTodo = async (req, res) => {
     const wasCompleted = todo.completed;
     let notifyCompletion = false;
     let assignmentChanged = false;
-    const oldAssignedTo = todo.assignedTo
-      ? todo.assignedTo.toString()
-      : null;
+    const oldAssignedTo = todo.assignedTo ? todo.assignedTo.toString() : null;
 
     // Update text if provided
     if (text !== undefined) {

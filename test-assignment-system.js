@@ -119,10 +119,7 @@ const testAssignmentSystem = async () => {
     log("green", `   Assegnato a: NESSUNO (accesso libero)\n`);
 
     // 7. Test 3: Aggiungi todo con assegnazione VALIDA (task assigned)
-    log(
-      "yellow",
-      "7️⃣  Test 3: Todo su task assigned - assegnazione VALIDA...",
-    );
+    log("yellow", "7️⃣  Test 3: Todo su task assigned - assegnazione VALIDA...");
     taskAssigned.todos.push({
       text: "Todo assegnato a collab1 (valido)",
       assignedTo: collab1._id,
@@ -178,10 +175,7 @@ const testAssignmentSystem = async () => {
     log("green", `   Todo 2 assegnato a: ${collab2.username} ✓\n`);
 
     // 10. Test 6: Tentativo di assegnare todo a utente esterno
-    log(
-      "yellow",
-      "🔟 Test 6: Todo assegnato a utente ESTERNO al progetto...",
-    );
+    log("yellow", "🔟 Test 6: Todo assegnato a utente ESTERNO al progetto...");
     try {
       const projectMembers = [
         project.owner.toString(),
@@ -279,12 +273,18 @@ const testAssignmentSystem = async () => {
     log("blue", "   ✓ Struttura dati coerente nel database\n");
 
     log("cyan", "📝 Regole di Assegnazione:");
-    log("cyan", "   1. Task.assignedTo = [] → Todos assegnabili a tutti i membri");
+    log(
+      "cyan",
+      "   1. Task.assignedTo = [] → Todos assegnabili a tutti i membri",
+    );
     log(
       "cyan",
       "   2. Task.assignedTo = [...] → Todos assegnabili solo agli assegnati",
     );
-    log("cyan", "   3. Utenti esterni al progetto NON possono essere assegnati");
+    log(
+      "cyan",
+      "   3. Utenti esterni al progetto NON possono essere assegnati",
+    );
     log("cyan", "   4. Notifiche inviate solo agli utenti neo-assegnati\n");
   } catch (error) {
     log("red", "\n❌ ERRORE NEL TEST:");
