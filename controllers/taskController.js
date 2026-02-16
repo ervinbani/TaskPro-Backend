@@ -28,13 +28,80 @@ const checkProjectAccess = async (projectId, userId) => {
   return { authorized: true, project };
 };
 
+// Helper function to validate task assignment
+const validateTaskAssignment = (assignedUsers, project) => {
+  if (!assignedUsers || assignedUsers.length === 0) {
+    return { valid: true }; // No assignment is valid
+  }
+
+  const projectMembers = [
+    project.owner.toString(),
+    ...project.collaborators.map((c) => c.toString()),
+  ];
+
+  const invalidUsers = assignedUsers.filter(
+    (userId) => !projectMembers.includes(userId.toString()),
+  );
+
+  if (invalidUsers.length > 0) {
+    return {
+      valid: false,
+      error: "Can only assign tasks to project owner or collaborators",
+    };
+  }
+
+  return { valid: true };
+};
+
+// Helper function to validate todo assignment
+const validateTodoAssignment = (assignedUserId, task, project) => {
+  if (!assignedUserId) {
+    return { valid: true }; // No assignment is valid
+  }
+
+  // If task has assigned users, todo can only be assigned to those users
+  if (task.assignedTo && task.assignedTo.length > 0) {
+    const taskAssignees = task.assignedTo.map((id) => id.toString());
+    if (!taskAssignees.includes(assignedUserId.toString())) {
+      return {
+        valid: false,
+        error:
+          "Todo can only be assigned to users assigned to this task. Assign users to the task first.",
+      };
+    }
+  } else {
+    // If task has no assigned users, todo can be assigned to any project member
+    const projectMembers = [
+      project.owner.toString(),
+      ...project.collaborators.map((c) => c.toString()),
+    ];
+
+    if (!projectMembers.includes(assignedUserId.toString())) {
+      return {
+        valid: false,
+        error: "Todo can only be assigned to project owner or collaborators",
+      };
+    }
+  }
+
+  return { valid: true };
+};
+
 // @desc    Create a new task in a project
 // @route   POST /api/projects/:projectId/tasks
 // @access  Private
 const createTask = async (req, res) => {
   try {
-    const { title, description, status, priority, dueDate, tags, comments } =
-      req.body;
+    const {
+      title,
+      description,
+      status,
+      priority,
+      dueDate,
+      tags,
+      comments,
+      assignedTo,
+    } = req.body;
     const projectId = req.params.projectId;
 
     // Validation: check that the title is present
@@ -50,6 +117,14 @@ const createTask = async (req, res) => {
         .json({ message: access.error });
     }
 
+    // Validate assignedTo if provided
+    if (assignedTo && assignedTo.length > 0) {
+      const validation = validateTaskAssignment(assignedTo, access.project);
+      if (!validation.valid) {
+        return res.status(400).json({ message: validation.error });
+      }
+    }
+
     // Create the task
     const task = await Task.create({
       title,
@@ -60,9 +135,26 @@ const createTask = async (req, res) => {
       project: projectId,
       tags: tags || [],
       comments: comments || [],
+      assignedTo: assignedTo || [],
     });
 
-    // Notify all project members except the creator
+    // Notify assigned users if any
+    if (assignedTo && assignedTo.length > 0) {
+      const assignedMembers = assignedTo.filter(
+        (userId) => userId.toString() !== req.user._id.toString(),
+      );
+      if (assignedMembers.length > 0) {
+        await createNotifications(assignedMembers, {
+          sender: req.user._id,
+          type: "TASK_ASSIGNED",
+          message: `${req.user.username} assigned you to task: '${task.title}'`,
+          project: projectId,
+          task: task._id,
+        });
+      }
+    }
+
+    // Notify all project members except the creator about new task
     const members = getProjectMembers(access.project, req.user._id);
     if (members.length > 0) {
       await createNotifications(members, {
@@ -147,12 +239,22 @@ const updateTask = async (req, res) => {
     }
 
     // Update fields
-    const { title, description, status, priority, dueDate, tags, comments } =
-      req.body;
+    const {
+      title,
+      description,
+      status,
+      priority,
+      dueDate,
+      tags,
+      comments,
+      assignedTo,
+    } = req.body;
 
     // Track if status changed for notification
     const oldStatus = task.status;
     let statusChanged = false;
+    let assignmentChanged = false;
+    const oldAssignedTo = task.assignedTo.map((id) => id.toString());
 
     if (title) task.title = title;
     if (description !== undefined) task.description = description;
@@ -183,7 +285,49 @@ const updateTask = async (req, res) => {
     if (tags !== undefined) task.tags = tags;
     if (comments !== undefined) task.comments = comments;
 
+    // Handle assignedTo update
+    if (assignedTo !== undefined) {
+      // Validate assignedTo
+      if (assignedTo.length > 0) {
+        const validation = validateTaskAssignment(assignedTo, access.project);
+        if (!validation.valid) {
+          return res.status(400).json({ message: validation.error });
+        }
+      }
+
+      const newAssignedTo = assignedTo.map((id) => id.toString());
+
+      // Check if assignment changed
+      if (
+        oldAssignedTo.length !== newAssignedTo.length ||
+        !oldAssignedTo.every((id) => newAssignedTo.includes(id))
+      ) {
+        assignmentChanged = true;
+      }
+
+      task.assignedTo = assignedTo;
+    }
+
     const updatedTask = await task.save();
+
+    // Notify newly assigned users
+    if (assignmentChanged && assignedTo && assignedTo.length > 0) {
+      const newlyAssigned = assignedTo.filter(
+        (userId) =>
+          !oldAssignedTo.includes(userId.toString()) &&
+          userId.toString() !== req.user._id.toString(),
+      );
+
+      if (newlyAssigned.length > 0) {
+        await createNotifications(newlyAssigned, {
+          sender: req.user._id,
+          type: "TASK_ASSIGNED",
+          message: `${req.user.username} assigned you to task: '${task.title}'`,
+          project: task.project._id,
+          task: task._id,
+        });
+      }
+    }
 
     // Notify project members if status changed
     if (statusChanged) {
@@ -251,7 +395,7 @@ const deleteTask = async (req, res) => {
 // @access  Private
 const addTodo = async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, assignedTo } = req.body;
 
     if (!text || text.trim() === "") {
       return res.status(400).json({ message: "Todo text is required" });
@@ -276,16 +420,40 @@ const addTodo = async (req, res) => {
         .json({ message: "Maximum 50 todos per task allowed" });
     }
 
+    // Validate assignedTo if provided
+    if (assignedTo) {
+      const validation = validateTodoAssignment(
+        assignedTo,
+        task,
+        access.project,
+      );
+      if (!validation.valid) {
+        return res.status(400).json({ message: validation.error });
+      }
+    }
+
     // Add the todo
     task.todos.push({
       text: text.trim(),
       completed: false,
       completedAt: null,
       completedBy: null,
+      assignedTo: assignedTo || null,
       createdAt: new Date(),
     });
 
     await task.save();
+
+    // Notify assigned user if specified
+    if (assignedTo && assignedTo.toString() !== req.user._id.toString()) {
+      await createNotifications([assignedTo], {
+        sender: req.user._id,
+        type: "TODO_ASSIGNED",
+        message: `${req.user.username} assigned you a todo in '${task.title}': '${text.trim()}'`,
+        project: task.project._id,
+        task: task._id,
+      });
+    }
 
     // Notify project members about new todo
     const members = getProjectMembers(access.project, req.user._id);
@@ -310,7 +478,7 @@ const addTodo = async (req, res) => {
 // @access  Private
 const updateTodo = async (req, res) => {
   try {
-    const { text, completed } = req.body;
+    const { text, completed, assignedTo } = req.body;
 
     const task = await Task.findById(req.params.id).populate("project");
 
@@ -334,6 +502,10 @@ const updateTodo = async (req, res) => {
     // Track if completed status changed
     const wasCompleted = todo.completed;
     let notifyCompletion = false;
+    let assignmentChanged = false;
+    const oldAssignedTo = todo.assignedTo
+      ? todo.assignedTo.toString()
+      : null;
 
     // Update text if provided
     if (text !== undefined) {
@@ -341,6 +513,27 @@ const updateTodo = async (req, res) => {
         return res.status(400).json({ message: "Todo text cannot be empty" });
       }
       todo.text = text.trim();
+    }
+
+    // Update assignedTo if provided
+    if (assignedTo !== undefined) {
+      // Validate assignedTo (can be null to unassign)
+      if (assignedTo !== null) {
+        const validation = validateTodoAssignment(
+          assignedTo,
+          task,
+          access.project,
+        );
+        if (!validation.valid) {
+          return res.status(400).json({ message: validation.error });
+        }
+      }
+
+      const newAssignedTo = assignedTo ? assignedTo.toString() : null;
+      if (oldAssignedTo !== newAssignedTo) {
+        assignmentChanged = true;
+        todo.assignedTo = assignedTo;
+      }
     }
 
     // Update completed status if provided
@@ -360,6 +553,21 @@ const updateTodo = async (req, res) => {
     }
 
     await task.save();
+
+    // Notify if assignment changed
+    if (
+      assignmentChanged &&
+      assignedTo &&
+      assignedTo.toString() !== req.user._id.toString()
+    ) {
+      await createNotifications([assignedTo], {
+        sender: req.user._id,
+        type: "TODO_ASSIGNED",
+        message: `${req.user.username} assigned you a todo in '${task.title}': '${todo.text}'`,
+        project: task.project._id,
+        task: task._id,
+      });
+    }
 
     // Notify if todo was completed
     if (notifyCompletion) {

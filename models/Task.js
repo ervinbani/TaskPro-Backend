@@ -38,6 +38,12 @@ const taskSchema = new mongoose.Schema(
       ref: "Project", // Reference to the project it belongs to
       required: true,
     },
+    assignedTo: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", // Users assigned to this task
+      },
+    ],
     tags: [
       {
         type: String,
@@ -86,6 +92,11 @@ const taskSchema = new mongoose.Schema(
         completedBy: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
+          default: null,
+        },
+        assignedTo: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User", // User assigned to this specific todo
           default: null,
         },
         createdAt: {
