@@ -22,6 +22,10 @@ const app = express();
 const corsOptions = {
   origin:
     process.env.CLIENT_URL || "https://taskpro-frontend-6016.onrender.com",
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
 app.use(cors(corsOptions));
