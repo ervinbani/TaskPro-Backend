@@ -635,6 +635,179 @@ const deleteTodo = async (req, res) => {
   }
 };
 
+// ============ COMMENT ROUTES ============
+
+// @desc    Add a comment to a task
+// @route   POST /api/tasks/:id/comments
+// @access  Private
+const addComment = async (req, res) => {
+  try {
+    const { description } = req.body;
+
+    if (!description || description.trim() === "") {
+      return res.status(400).json({ message: "Comment description is required" });
+    }
+
+    const task = await Task.findById(req.params.id).populate("project");
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    // Verify access to the task's project
+    const access = await checkProjectAccess(task.project._id, req.user._id);
+    if (!access.authorized) {
+      return res.status(403).json({ message: access.error });
+    }
+
+    // Get current user info
+    const User = require("../models/User");
+    const user = await User.findById(req.user._id);
+
+    // Create new comment
+    const newComment = {
+      description: description.trim(),
+      owner: {
+        username: user.username,
+        email: user.email,
+      },
+      createdAt: new Date(),
+    };
+
+    // Add comment to task
+    task.comments.push(newComment);
+    await task.save();
+
+    // Send notification to other project members
+    const members = getProjectMembers(task.project, req.user._id);
+    if (members.length > 0) {
+      await createNotifications(members, {
+        sender: req.user._id,
+        type: "TASK_UPDATED",
+        message: `${user.username} commented on '${task.title}'`,
+        project: task.project._id,
+        task: task._id,
+      });
+    }
+
+    res.status(201).json({
+      message: "Comment added successfully",
+      comment: task.comments[task.comments.length - 1],
+      task,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update a comment
+// @route   PUT /api/tasks/:id/comments/:commentId
+// @access  Private
+const updateComment = async (req, res) => {
+  try {
+    const { description } = req.body;
+
+    if (!description || description.trim() === "") {
+      return res.status(400).json({ message: "Comment description is required" });
+    }
+
+    const task = await Task.findById(req.params.id).populate("project");
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    // Verify access to the task's project
+    const access = await checkProjectAccess(task.project._id, req.user._id);
+    if (!access.authorized) {
+      return res.status(403).json({ message: access.error });
+    }
+
+    // Find the comment
+    const comment = task.comments.id(req.params.commentId);
+
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Get current user info
+    const User = require("../models/User");
+    const user = await User.findById(req.user._id);
+
+    // Check if user is the comment owner or project owner
+    const isCommentOwner = comment.owner.email === user.email;
+    const isProjectOwner = task.project.owner.toString() === req.user._id.toString();
+
+    if (!isCommentOwner && !isProjectOwner) {
+      return res.status(403).json({
+        message: "You can only edit your own comments",
+      });
+    }
+
+    // Update comment
+    comment.description = description.trim();
+
+    await task.save();
+
+    res.json({
+      message: "Comment updated successfully",
+      comment,
+      task,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete a comment from a task
+// @route   DELETE /api/tasks/:id/comments/:commentId
+// @access  Private
+const deleteComment = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id).populate("project");
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    // Verify access to the task's project
+    const access = await checkProjectAccess(task.project._id, req.user._id);
+    if (!access.authorized) {
+      return res.status(403).json({ message: access.error });
+    }
+
+    // Find the comment
+    const comment = task.comments.id(req.params.commentId);
+
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Get current user info
+    const User = require("../models/User");
+    const user = await User.findById(req.user._id);
+
+    // Check if user is the comment owner or project owner
+    const isCommentOwner = comment.owner.email === user.email;
+    const isProjectOwner = task.project.owner.toString() === req.user._id.toString();
+
+    if (!isCommentOwner && !isProjectOwner) {
+      return res.status(403).json({
+        message: "You can only delete your own comments",
+      });
+    }
+
+    // Remove the comment (MongoDB subdocument method)
+    comment.deleteOne();
+
+    await task.save();
+
+    res.json({ message: "Comment deleted successfully", task });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createTask,
   getTasks,
@@ -644,4 +817,7 @@ module.exports = {
   addTodo,
   updateTodo,
   deleteTodo,
+  addComment,
+  updateComment,
+  deleteComment,
 };

@@ -49,4 +49,21 @@ router.put("/:id/todos/:todoId", taskController.updateTodo);
 // @access  Private
 router.delete("/:id/todos/:todoId", taskController.deleteTodo);
 
+// ============ COMMENT ROUTES ============
+
+// @route   POST /api/tasks/:id/comments
+// @desc    Add a comment to a task
+// @access  Private
+router.post("/:id/comments", taskController.addComment);
+
+// @route   PUT /api/tasks/:id/comments/:commentId
+// @desc    Update a comment (only your own or project owner)
+// @access  Private
+router.put("/:id/comments/:commentId", taskController.updateComment);
+
+// @route   DELETE /api/tasks/:id/comments/:commentId
+// @desc    Delete a comment (only your own or project owner)
+// @access  Private
+router.delete("/:id/comments/:commentId", taskController.deleteComment);
+
 module.exports = router;
